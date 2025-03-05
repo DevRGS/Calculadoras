@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Calculadora de Investimento e Renda Passiva</title>
+  <!-- Importando ECharts via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7f7f7;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+    h1, h2 {
+      text-align: center;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .section {
+      margin-bottom: 40px;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    input[type="number"] {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      background: #007BFF;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      display: block;
+      margin: 20px auto;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    /* Estilo dos "cards" de resultado */
+    .results-cards {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-top: 15px;
+      margin-bottom: 15px;
+      justify-content: center;
+    }
+    .card-result {
+      flex: 1 1 250px;
+      background: #f5f5f5;
+      border-radius: 6px;
+      padding: 20px;
+      text-align: center;
+      min-width: 200px;
+    }
+    .card-result p {
+      margin: 0;
+      color: #666;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .card-result h3 {
+      margin: 5px 0 0 0;
+      color: #333;
+      font-size: 20px;
+      font-weight: 700;
+    }
+    /* Containers dos gráficos */
+    .chart-container {
+      background: #f5f5f5;
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 15px;
+    }
+    #chartDonut, #chartStacked,
+    #chartDonutRenda, #chartStackedRenda {
+      width: 100%;
+      height: 400px;
+      margin-bottom: 20px;
+    }
+    /* Tabela */
+    .table-container {
+      background: #f5f5f5;
+      padding: 15px;
+      border-radius: 6px;
+      max-height: 250px;
+      overflow-y: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 5px;
+      font-size: 0.9em;
+    }
+    table th, table td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
+    }
+    table th {
+      background: #007BFF;
+      color: #fff;
+    }
+    /* Animação de fade-in */
+    .hidden {
+      display: none;
+    }
+    .visible {
+      display: block;
+      animation: fadeIn 0.7s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Calculadora de Investimento e Renda Passiva</h1>
+    
+    <!-- Seção 1: Calculadora de Investimento -->
+    <div class="section" id="calc-investimento">
+      <h2>Calculadora de Investimento</h2>
+      <div class="form-group">
+        <label for="aporteInicial">Aporte Inicial (R$):</label>
+        <input type="number" id="aporteInicial" placeholder="Ex: 1000" step="any">
+      </div>
+      <div class="form-group">
+        <label for="aporteMensal">Aporte Mensal (R$):</label>
+        <input type="number" id="aporteMensal" placeholder="Ex: 500" step="any">
+      </div>
+      <div class="form-group">
+        <label for="tempoAnos">Tempo de Investimento (anos):</label>
+        <input type="number" id="tempoAnos" placeholder="Ex: 15" step="any">
+      </div>
+      <div class="form-group">
+        <label for="jurosAnual">Taxa de Juros ao Ano (%):</label>
+        <input type="number" id="jurosAnual" placeholder="Ex: 7.43" step="any">
+      </div>
+      <button onclick="calcularInvestimento()">Calcular Investimento</button>
+      <!-- Cards de resultado -->
+      <div class="results-cards" id="cardsInvestimento"></div>
+      <!-- Gráficos (inicialmente escondidos) -->
+      <div class="chart-container hidden" id="investmentCharts">
+        <div id="chartDonut"></div>
+        <div id="chartStacked"></div>
+      </div>
+      <!-- Tabela -->
+      <div class="table-container" id="tableInvestimento"></div>
+    </div>
+    
+    <!-- Seção 2: Calculadora para Renda Passiva -->
+    <div class="section" id="calc-renda-passiva">
+      <h2>Calculadora para Renda Passiva</h2>
+      <div class="form-group">
+        <label for="aporteInicialRenda">Aporte Inicial (R$):</label>
+        <input type="number" id="aporteInicialRenda" placeholder="Ex: 1000" step="any">
+      </div>
+      <div class="form-group">
+        <label for="aporteMensalRenda">Aporte Mensal (R$):</label>
+        <input type="number" id="aporteMensalRenda" placeholder="Ex: 500" step="any">
+      </div>
+      <div class="form-group">
+        <label for="jurosAnualRenda">Taxa de Juros ao Ano (%):</label>
+        <input type="number" id="jurosAnualRenda" placeholder="Ex: 7.43" step="any">
+      </div>
+      <div class="form-group">
+        <label for="rendaDesejada">Renda Passiva Desejada (mensal, R$):</label>
+        <input type="number" id="rendaDesejada" placeholder="Ex: 2000" step="any">
+      </div>
+      <button onclick="calcularRendaPassiva()">Calcular Tempo para Renda Passiva</button>
+      <!-- Cards de resultado -->
+      <div class="results-cards" id="cardsRenda"></div>
+      <!-- Gráficos (inicialmente escondidos) -->
+      <div class="chart-container hidden" id="rendaCharts">
+        <div id="chartDonutRenda"></div>
+        <div id="chartStackedRenda"></div>
+      </div>
+      <!-- Tabela -->
+      <div class="table-container" id="tableRenda"></div>
+    </div>
+  </div>
+
+  <script>
+    // Função para formatar valores como moeda brasileira (R$)
+    function formatCurrency(value) {
+      return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    // Simulação correta:
+    // Mês 0: apenas aporte inicial (sem juros)
+    // Mês 1..N: calcula juros sobre saldo do mês anterior, depois adiciona o aporte
+    function simularInvestimento(aporteInicial, aporteMensal, jurosAnual, totalMeses) {
+      const dados = [];
+      const taxaMensal = Math.pow(1 + jurosAnual / 100, 1 / 12) - 1;
+      let saldo = aporteInicial;
+      let investido = aporteInicial;
+      let totalJuros = 0;
+      // Mês 0
+      dados.push({
+        mes: 0,
+        juros: 0,
+        investido: investido,
+        totalJuros: 0,
+        saldo: saldo
+      });
+      // Mês 1 a N
+      for (let mes = 1; mes <= totalMeses; mes++) {
+        const jurosMes = saldo * taxaMensal;
+        totalJuros += jurosMes;
+        investido += aporteMensal;
+        saldo = saldo + jurosMes + aporteMensal;
+        dados.push({
+          mes: mes,
+          juros: jurosMes,
+          investido: investido,
+          totalJuros: totalJuros,
+          saldo: saldo
+        });
+      }
+      return dados;
+    }
+
+    // Gera a tabela com os dados simulados
+    function gerarTabela(dados) {
+      let html = `<table>
+        <thead>
+          <tr>
+            <th>Mês</th>
+            <th>Juros</th>
+            <th>Total Investido</th>
+            <th>Total Juros</th>
+            <th>Total Acumulado</th>
+          </tr>
+        </thead>
+        <tbody>`;
+      dados.forEach(item => {
+        html += `<tr>
+          <td>${item.mes}</td>
+          <td>${item.mes === 0 ? '-' : formatCurrency(item.juros)}</td>
+          <td>${formatCurrency(item.investido)}</td>
+          <td>${item.mes === 0 ? '-' : formatCurrency(item.totalJuros)}</td>
+          <td>${formatCurrency(item.saldo)}</td>
+        </tr>`;
+      });
+      html += `</tbody></table>`;
+      return html;
+    }
+
+    // Função modificada para exibir os cards (incluindo o novo card "Renda Passiva")
+    // Parâmetros: container, valorFinal, valorInvestido, totalJuros, rendaPassiva e opcional tempoTexto
+    function exibirCards(containerId, valorFinal, valorInvestido, totalJuros, rendaPassiva, tempoTexto = '') {
+      const container = document.getElementById(containerId);
+      if (tempoTexto) {
+        container.innerHTML = `
+          <div class="card-result" style="flex-basis: 100%;">
+            <p>Tempo Necessário</p>
+            <h3>${tempoTexto}</h3>
+          </div>
+        `;
+      } else {
+        container.innerHTML = '';
+      }
+      container.innerHTML += `
+        <div class="card-result">
+          <p>Valor total final</p>
+          <h3>${formatCurrency(valorFinal)}</h3>
+        </div>
+        <div class="card-result">
+          <p>Valor total investido</p>
+          <h3>${formatCurrency(valorInvestido)}</h3>
+        </div>
+        <div class="card-result">
+          <p>Total em juros</p>
+          <h3>${formatCurrency(totalJuros)}</h3>
+        </div>
+        <div class="card-result">
+          <p>Renda Passiva</p>
+          <h3>${formatCurrency(rendaPassiva)}</h3>
+        </div>
+      `;
+    }
+
+    // Função para gerar os gráficos com ECharts (Donut e Barras Empilhadas)
+    function gerarECharts(dadosSimulados, donutId, stackedId) {
+      const chartDonut = echarts.init(document.getElementById(donutId));
+      const chartStacked = echarts.init(document.getElementById(stackedId));
+
+      const ultimo = dadosSimulados[dadosSimulados.length - 1];
+      const valorInvestido = ultimo.investido;
+      const valorJuros = ultimo.totalJuros;
+
+      // Donut com cores personalizadas:
+      const optionDonut = {
+        tooltip: {
+          trigger: 'item',
+          formatter: (params) => {
+            return (
+              `<div style="padding:10px">
+                <span style="display:flex; align-items: center;">
+                  <span style="display:block; width:10px; height:10px; margin-right: 5px; border-radius:10px; background-color:${params.color}"></span>
+                  <span style="display:block; margin-top:5px">
+                    <span style="display:block; font-size:10pt; line-height:11pt">${params.name}:</span>
+                    <span style="display:block; font-weight: bold; font-size:10pt; line-height:12pt">
+                      ${formatCurrency(params.value)}
+                    </span>
+                  </span>
+                </span>
+              </div>`
+            );
+          }
+        },
+        legend: { orient: 'vertical', left: 10 },
+        series: [
+          {
+            name: 'Distribuição',
+            type: 'pie',
+            radius: ['40%', '70%'],
+            avoidLabelOverlap: false,
+            itemStyle: { borderRadius: 5, borderColor: '#fff', borderWidth: 2 },
+            label: { show: false },
+            emphasis: { label: { show: true, fontSize: '14' } },
+            labelLine: { show: false },
+            data: [
+              {
+                value: valorInvestido,
+                name: 'Valor Investido',
+                itemStyle: { color: '#5DADE2' } // Azul claro
+              },
+              {
+                value: valorJuros,
+                name: 'Valor em Juros',
+                itemStyle: { color: '#2E86C1' } // Azul escuro
+              }
+            ]
+          }
+        ]
+      };
+      chartDonut.setOption(optionDonut);
+
+      // Gráfico de Barras Empilhadas
+      const totalMeses = dadosSimulados[dadosSimulados.length - 1].mes;
+      const totalAnos = Math.floor(totalMeses / 12);
+      const anos = [];
+      const investidosPorAno = [];
+      const jurosPorAno = [];
+      for (let ano = 0; ano <= totalAnos; ano++) {
+        const mesIndex = ano * 12;
+        if (mesIndex >= dadosSimulados.length) break;
+        anos.push(ano.toString());
+        investidosPorAno.push(dadosSimulados[mesIndex].investido);
+        jurosPorAno.push(dadosSimulados[mesIndex].totalJuros);
+      }
+      const optionStacked = {
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: { type: 'shadow' },
+          formatter: (params) => {
+            let ano = params[0].axisValue;
+            let valInvestido = params[0].value;
+            let valJuros = params[1].value;
+            let soma = valInvestido + valJuros;
+            return (
+              `<b>${ano} Anos</b><br/>
+               Valor Investido: ${formatCurrency(valInvestido)}<br/>
+               Valor em Juros: ${formatCurrency(valJuros)}<br/>
+               Valor Total: ${formatCurrency(soma)}`
+            );
+          }
+        },
+        legend: { data: ['Valor Investido', 'Valor em Juros'] },
+        xAxis: { type: 'category', data: anos, name: 'Anos' },
+        yAxis: { type: 'value', name: 'R$' },
+        series: [
+          {
+            name: 'Valor Investido',
+            type: 'bar',
+            stack: 'total',
+            itemStyle: { color: '#5DADE2' },
+            data: investidosPorAno
+          },
+          {
+            name: 'Valor em Juros',
+            type: 'bar',
+            stack: 'total',
+            itemStyle: { color: '#2E86C1' },
+            data: jurosPorAno
+          }
+        ]
+      };
+      chartStacked.setOption(optionStacked);
+
+      window.addEventListener('resize', () => {
+        chartDonut.resize();
+        chartStacked.resize();
+      });
+    }
+
+    // =================== CÁLCULO DE INVESTIMENTO ===================
+    function calcularInvestimento() {
+      const aporteInicial = parseFloat(document.getElementById('aporteInicial').value) || 0;
+      const aporteMensal = parseFloat(document.getElementById('aporteMensal').value) || 0;
+      const tempoAnos = parseFloat(document.getElementById('tempoAnos').value) || 0;
+      const jurosAnual = parseFloat(document.getElementById('jurosAnual').value) || 0;
+      const totalMeses = tempoAnos * 12;
+      
+      const dadosSimulados = simularInvestimento(aporteInicial, aporteMensal, jurosAnual, totalMeses);
+      if (dadosSimulados.length === 0) {
+        exibirCards('cardsInvestimento', 0, 0, 0);
+        document.getElementById('tableInvestimento').innerHTML = '';
+        return;
+      }
+      
+      const ultimo = dadosSimulados[dadosSimulados.length - 1];
+      const saldoFinal = ultimo.saldo;
+      const totalInvestido = ultimo.investido;
+      const jurosGerados = ultimo.totalJuros;
+      // Calcula a taxa mensal efetiva para a seção de investimento
+      const taxaMensal = Math.pow(1 + jurosAnual / 100, 1 / 12) - 1;
+      // Renda Passiva: rendimento mensal do saldo final
+      const rendaPassiva = saldoFinal * taxaMensal;
+      
+      exibirCards('cardsInvestimento', saldoFinal, totalInvestido, jurosGerados, rendaPassiva);
+      
+      const tabelaHTML = gerarTabela(dadosSimulados);
+      document.getElementById('tableInvestimento').innerHTML = tabelaHTML;
+
+      // Exibe e anima os gráficos
+      const chartsDiv = document.getElementById('investmentCharts');
+      chartsDiv.classList.remove('hidden');
+      chartsDiv.classList.add('visible');
+
+      gerarECharts(dadosSimulados, 'chartDonut', 'chartStacked');
+    }
+    
+    // =================== CÁLCULO DE RENDA PASSIVA ===================
+    function calcularRendaPassiva() {
+      const aporteInicial = parseFloat(document.getElementById('aporteInicialRenda').value) || 0;
+      const aporteMensal = parseFloat(document.getElementById('aporteMensalRenda').value) || 0;
+      const jurosAnual = parseFloat(document.getElementById('jurosAnualRenda').value) || 0;
+      const rendaDesejada = parseFloat(document.getElementById('rendaDesejada').value) || 0;
+      const totalMesesEstimado = 1000 * 12;
+      const taxaMensal = Math.pow(1 + jurosAnual / 100, 1 / 12) - 1;
+      let dadosSimulados = [];
+      let saldo = aporteInicial;
+      let investido = aporteInicial;
+      let totalJuros = 0;
+      let mes = 0;
+      
+      // Mês 0
+      dadosSimulados.push({
+        mes: 0,
+        juros: 0,
+        investido,
+        totalJuros,
+        saldo
+      });
+      
+      while (saldo * taxaMensal < rendaDesejada && mes < totalMesesEstimado) {
+        mes++;
+        const jurosMes = saldo * taxaMensal;
+        totalJuros += jurosMes;
+        investido += aporteMensal;
+        saldo = saldo + jurosMes + aporteMensal;
+        dadosSimulados.push({
+          mes,
+          juros: jurosMes,
+          investido,
+          totalJuros,
+          saldo
+        });
+      }
+      if (mes >= totalMesesEstimado) {
+        document.getElementById('cardsRenda').innerHTML = `<p>Não foi possível atingir a renda desejada em um período razoável.</p>`;
+        document.getElementById('tableRenda').innerHTML = '';
+        document.getElementById('rendaCharts').classList.add('hidden');
+        return;
+      }
+      const ultimoRenda = dadosSimulados[dadosSimulados.length - 1];
+      const saldoFinal = ultimoRenda.saldo;
+      const totalInvestido = ultimoRenda.investido;
+      const jurosGerados = ultimoRenda.totalJuros;
+      const anos = Math.floor(mes / 12);
+      const mesesRestantes = mes % 12;
+      const tempoTexto = `${anos} anos e ${mesesRestantes} meses (${mes} meses)`;
+      // Renda Passiva para a seção de renda: rendimento mensal do saldo final
+      const rendaPassiva = saldoFinal * taxaMensal;
+      
+      exibirCards('cardsRenda', saldoFinal, totalInvestido, jurosGerados, rendaPassiva, tempoTexto);
+      
+      const tabelaHTML = gerarTabela(dadosSimulados);
+      document.getElementById('tableRenda').innerHTML = tabelaHTML;
+
+      // Exibe e anima os gráficos
+      const chartsDiv = document.getElementById('rendaCharts');
+      chartsDiv.classList.remove('hidden');
+      chartsDiv.classList.add('visible');
+
+      gerarECharts(dadosSimulados, 'chartDonutRenda', 'chartStackedRenda');
+    }
+  </script>
+</body>
+</html>
